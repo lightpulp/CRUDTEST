@@ -15,24 +15,45 @@ export default class ApisController {
         });
     }
 
-    static async insert_configuration(request: Request, response: Response){
-        const { key, value } = request.body;
-        await Configuration.insert({key, value});
-
-        const checkIfExist = await Configuration.findBy({ key });
-
-        if(!checkIfExist){
+    static async get_configuration_by_id(request: Request, response: Response) {
+        const { id } = request.params;
+        const configuration = await Configuration.findOneBy({ id: Number(id) });
+    
+        if (!configuration) {
             response.json({
                 status: 0,
-                message: "Configuration already exists!"
+                message: "Configuration not found!",
             });
+            return;
         }
+    
+        response.json({
+            status: 1,
+            data: configuration,
+        });
+    }
 
+    static async insert_configuration(request: Request, response: Response) {
+        const { key, value } = request.body;
+        
+        // Insert the configuration and get the result
+        const result = await Configuration.save({ key, value });
+    
+        if (!result) {
+            response.json({
+                status: 0,
+                message: "Configuration insertion failed!",
+            });
+            return;
+        }
+    
         response.json({
             status: 1,
             message: "Configuration has been inserted!",
+            insertedId: result.id, // Return the inserted id
         });
     }
+   
 
     static async update_configuration(request: Request, response: Response){
         const { key, value } = request.body;
